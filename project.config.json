@@ -1,0 +1,55 @@
+{
+   "description": "摇摇瞎选 - 摇一摇随机决策小程序",
+   "compileType": "miniprogram",
+   "appid": "wxa89d5df33a980313",
+   "projectname": "blindshake",
+   "libVersion": "3.0.0",
+   "setting": {
+      "es6": true,
+      "postcss": true,
+      "minified": true,
+      "urlCheck": false,
+      "coverView": true,
+      "autoAudits": false,
+      "showShadowRootInWxmlPanel": true,
+      "compileHotReLoad": false,
+      "useIsolateContext": true,
+      "compileWorklet": false,
+      "uglifyFileName": false,
+      "uploadWithSourceMap": true,
+      "enhance": false,
+      "packNpmManually": false,
+      "packNpmRelationList": [],
+      "minifyWXSS": true,
+      "minifyWXML": true,
+      "localPlugins": false,
+      "disableUseStrict": false,
+      "useCompilerPlugins": false,
+      "condition": false,
+      "swc": false,
+      "disableSWC": true,
+      "babelSetting": {
+         "ignore": [],
+         "disablePlugins": [],
+         "outputPath": ""
+      }
+   },
+   "condition": {},
+   "simulatorPluginLibVersion": {},
+   "packOptions": {
+      "ignore": [
+         { "type": "folder", "value": ".history" },
+         { "type": "folder", "value": ".zcode" },
+         { "type": "file", "value": ".zcodeignore" },
+         { "type": "file", "value": "assets/slot-machine-blank.png" },
+         { "type": "file", "value": "assets/slot-machine-original.jpg" },
+         { "type": "file", "value": "assets/slot-machine-final.png" },
+         { "type": "file", "value": "assets/avatar-1024.png" },
+         { "type": "file", "value": "assets/avatar.svg" },
+         { "type": "file", "value": "assets/avatar-144.png" },
+         { "type": "file", "value": "assets/tiger.html" }
+      ],
+      "include": []
+   },
+   "editorSetting": {}
+}

@@ -1,0 +1,108 @@
+<!--shake.wxml — 首页:摇一摇主界面 + 结果弹窗 + 庆祝粒子-->
+<view class="page">
+  <!-- 整页放射纹背景:一张大图同时承载机器本体与向外延拓的射线(零接缝),由 JS 实测对位 -->
+  <image class="page-rays {{raysReady ? '' : 'page-rays-hide'}}" src="../../assets/rays-bg.png" style="{{raysStyle}}" />
+  <!-- 顶栏:标语 + 分组胶囊(点击切换) + 设置入口 -->
+  <view class="topbar">
+    <view class="tagline-wrap">
+      <view class="tagline">选择困难?摇一下就知道</view>
+      <view class="list-pill" hover-class="list-pill-hover" bindtap="onOpenListPicker">
+        <text class="list-pill-label">当前分组</text>
+        <text class="list-pill-name">{{activeListName}}</text>
+        <text class="list-pill-arrow">▾</text>
+      </view>
+    </view>
+    <view class="settings-btn" hover-class="settings-btn-hover" bindtap="goManage" aria-label="管理页">⚙️</view>
+  </view>
+
+  <!-- 中部展示区:六窗符号 + 出奖面板 + 拉杆(机器本体由整页背景承载) -->
+  <view class="stage">
+    <view class="machine {{rolling ? 'rolling' : ''}}">
+      <!-- 六滚筒窗:定格符号装饰,滚动中逐格闪烁 -->
+      <view class="reel-row">
+        <view class="reel-cell" wx:for="{{reelSymbols}}" wx:key="index" style="animation-delay: {{index * 70}}ms;">
+          <text class="sym {{item.cls}}">{{item.ch}}</text>
+        </view>
+      </view>
+      <!-- 出奖面板:滚动/定格显示选项名,粒子在面板内爆开 -->
+      <view class="panel">
+        <text class="display-text {{settling ? 'settle' : ''}}" style="animation-duration: {{reelDuration}}ms;">{{displayText}}</text>
+        <view class="particles" wx:if="{{particlesOn}}">
+          <view class="particle p{{item}}" wx:for="{{particleIndexes}}" wx:key="*this"></view>
+        </view>
+      </view>
+      <!-- 拉杆:点按或下拉均可触发;杆绕底部支点旋转,圆球反向自转抵消旋转、跟随杆顶并保持正圆 -->
+      <view
+        class="lever-hit"
+        hover-class="lever-hover"
+        bindtap="onTapShake"
+        bindtouchstart="onLeverTouchStart"
+        bindtouchmove="onLeverTouchMove"
+        bindtouchend="onLeverTouchEnd"
+        aria-label="拉动拉杆开始"
+      >
+        <view class="lever">
+          <view class="lever-swing">
+            <image class="lever-hand" src="../../assets/slot-machine-hand.png" mode="widthFix" />
+          </view>
+          <image class="lever-ball" src="../../assets/slot-machine-hand-circle.png" mode="widthFix" />
+        </view>
+      </view>
+    </view>
+    <view class="shake-tip">{{rolling ? '盲盒开启中…' : '摇一摇手机,或拉一下拉杆'}}</view>
+  </view>
+
+  <!-- 结果弹窗 -->
+  <view class="mask" wx:if="{{showResult}}" catchtouchmove="noop">
+    <view class="dialog">
+      <!-- 正常结果:三按钮 + 右上角关闭 -->
+      <block wx:if="{{resultMode === 'normal'}}">
+        <view class="dialog-close" hover-class="dialog-close-hover" bindtap="closeResult" aria-label="关闭">✕</view>
+        <view class="result-label">就决定是你了</view>
+        <view class="result-name">{{result.name}}</view>
+        <view class="actions">
+          <button class="btn primary" hover-class="btn-hover" bindtap="onConfirm">确定选择</button>
+          <button class="btn" hover-class="btn-hover" bindtap="onReroll">重新随机</button>
+          <button class="btn subtle" bindtap="onReduceAndReroll">减少推荐</button>
+        </view>
+        <view class="hint" wx:if="{{hintVisible}}">都不想吃?试试「减少推荐」,它出现的机会会变小</view>
+      </block>
+
+      <!-- 防重复耗尽:解锁入口 -->
+      <block wx:elif="{{resultMode === 'exhausted'}}">
+        <view class="result-label">候选都在冷却中</view>
+        <view class="exhausted-tip">最近确定过的选项还没恢复,每摇一次冷却会推进一步。也可以解锁全部,立即恢复所有候选。</view>
+        <view class="actions">
+          <button class="btn primary" hover-class="btn-hover" bindtap="onUnlock">解锁全部</button>
+          <button class="btn" hover-class="btn-hover" bindtap="goManage">去管理</button>
+          <button class="btn subtle" bindtap="closeResult">取消</button>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 分组切换弹层 -->
+  <view class="mask" wx:if="{{listPickerOpen}}" catchtouchmove="noop" bindtap="onCloseListPicker">
+    <view class="dialog" catchtap="noop">
+      <view class="picker-title">选择分组</view>
+      <scroll-view scroll-y class="group-list">
+        <view
+          class="group-option {{l.id === activeListId ? 'on' : ''}}"
+          wx:for="{{lists}}"
+          wx:for-item="l"
+          wx:key="id"
+          bindtap="onSelectGroup"
+          data-id="{{l.id}}"
+        >
+          <text class="group-option-name">{{l.name}}</text>
+          <text class="group-option-count">{{l.count}} 个选项</text>
+          <text class="group-option-check" wx:if="{{l.id === activeListId}}">✓</text>
+        </view>
+      </scroll-view>
+      <view class="actions">
+        <button class="btn primary" hover-class="btn-hover" bindtap="onAddGroupFromPicker">添加分组</button>
+        <button class="btn subtle" bindtap="onCloseListPicker">取消</button>
+      </view>
+    </view>
+  </view>
+</view>

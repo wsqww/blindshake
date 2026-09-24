@@ -1,0 +1,76 @@
+/* app.wxss — 全局样式:配色变量、按钮复位、通用弹窗 */
+
+page {
+  /* 暖色系:米白背景 + 深棕文字 + 暖橙主色 */
+  background: #f4f7fd;
+  color: #22314f;
+  font-size: 28rpx;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+}
+
+/* 去除小程序 button 默认样式干扰,统一交给页面类控制 */
+button {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  line-height: inherit;
+  border-radius: 0;
+}
+button::after {
+  border: none;
+}
+
+/* 通用遮罩:结果弹窗与批量导入弹层共用 */
+.mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 30, 65, 0.55);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 通用弹窗卡片 */
+.dialog {
+  position: relative;
+  width: 620rpx;
+  max-width: 90vw;
+  background: #ffffff;
+  border-radius: 28rpx;
+  padding: 48rpx 40rpx;
+  box-sizing: border-box;
+  box-shadow: 0 16rpx 48rpx rgba(30, 60, 130, 0.25);
+}
+
+/* 弹窗按钮纵排通用样式 */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-top: 40rpx;
+}
+.btn {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 22rpx 0;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  text-align: center;
+  background: #e7eefa;
+  color: #22314f;
+}
+.btn.primary {
+  background: #1e63e9;
+  color: #ffffff;
+  font-weight: 600;
+}
+.btn.subtle {
+  background: transparent;
+  color: #93a3bc;
+  font-size: 26rpx;
+  padding: 12rpx 0;
+}

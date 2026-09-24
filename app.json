@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "pages/shake/shake",
+    "pages/manage/manage"
+  ],
+  "window": {
+    "navigationBarTitleText": "摇摇瞎选",
+    "navigationBarBackgroundColor": "#F4F7FD",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F4F7FD",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

@@ -1,0 +1,255 @@
+/* manage.wxss — 管理页样式:分区卡片、名单行、权重条、模式切换 */
+
+.page {
+  min-height: 100vh;
+  padding: 24rpx 32rpx 64rpx;
+  box-sizing: border-box;
+}
+
+/* 分区卡片 */
+.section {
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 6rpx 24rpx rgba(30, 60, 130, 0.06);
+}
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  margin-bottom: 28rpx;
+}
+/* 标题行:标题 + 右侧小字提示 */
+.section-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.section-tip {
+  font-size: 22rpx;
+  color: #93a3bc;
+}
+
+/* 分组区:横向滚动标签 + 新建 + 当组操作 */
+.group-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+.group-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 4rpx 2rpx 8rpx;
+}
+.group-tab {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 14rpx 26rpx;
+  border-radius: 999rpx;
+  background: #edf3fc;
+  color: #7a8aa8;
+  font-size: 26rpx;
+}
+.group-tab.on {
+  background: #1e63e9;
+  color: #ffffff;
+  font-weight: 600;
+}
+.group-count {
+  font-size: 22rpx;
+  opacity: 0.75;
+}
+.group-tab.add {
+  background: transparent;
+  border: 2rpx dashed #c9d8f0;
+  color: #1e63e9;
+  font-weight: 700;
+  padding: 12rpx 28rpx;
+}
+.list-ops {
+  display: flex;
+  gap: 32rpx;
+  margin-top: 20rpx;
+}
+.op.disabled {
+  color: #c3cede;
+}
+
+/* 单个添加行 */
+.add-row {
+  display: flex;
+  gap: 20rpx;
+  align-items: center;
+}
+.add-input {
+  flex: 1;
+  background: #edf3fc;
+  border-radius: 14rpx;
+  padding: 18rpx 24rpx;
+  font-size: 28rpx;
+}
+.add-btn {
+  padding: 16rpx 36rpx;
+  background: #1e63e9;
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 600;
+  border-radius: 14rpx;
+}
+.btn-hover {
+  opacity: 0.85;
+}
+
+/* 批量导入入口 */
+.import-entry {
+  margin-top: 24rpx;
+  font-size: 26rpx;
+  color: #1e63e9;
+}
+
+/* 名单行 */
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 24rpx 0;
+  border-bottom: 2rpx solid #e6eef9;
+}
+.item-row:last-of-type {
+  border-bottom: none;
+}
+.item-main {
+  flex: 1;
+  min-width: 0;
+}
+.item-name {
+  font-size: 30rpx;
+  margin-bottom: 12rpx;
+  word-break: break-all;
+}
+/* 权重条:宽度由行内 style 控制,1.0 为满条 */
+.weight-bar {
+  height: 12rpx;
+  background: #e7eefa;
+  border-radius: 999rpx;
+  overflow: hidden;
+}
+.weight-fill {
+  height: 100%;
+  background: #1e63e9;
+  border-radius: 999rpx;
+  transition: width 0.3s ease;
+}
+.weight-fill.reduced {
+  background: #8fb3e8;
+}
+
+/* 行内操作 */
+.item-ops {
+  display: flex;
+  gap: 24rpx;
+  flex-shrink: 0;
+}
+.op {
+  font-size: 26rpx;
+  color: #1e63e9;
+}
+.op.del {
+  color: #e6554f;
+}
+
+.empty {
+  padding: 48rpx 0 24rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #93a3bc;
+}
+
+/* 权重说明脚注 */
+.weight-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-top: 24rpx;
+}
+.weight-note {
+  font-size: 24rpx;
+  color: #93a3bc;
+}
+
+/* 防重复模式切换 */
+.mode-row {
+  display: flex;
+  background: #e7eefa;
+  border-radius: 16rpx;
+  padding: 6rpx;
+}
+.mode {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #7a8aa8;
+}
+.mode.on {
+  background: #ffffff;
+  color: #1e63e9;
+  font-weight: 700;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+.mode-body {
+  margin-top: 28rpx;
+}
+.mode-desc {
+  font-size: 28rpx;
+  margin-bottom: 20rpx;
+}
+.em {
+  color: #1e63e9;
+  font-weight: 700;
+}
+
+/* 确定记录行 */
+.log-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-top: 28rpx;
+  padding-top: 24rpx;
+  border-top: 2rpx solid #e6eef9;
+}
+
+/* 批量导入弹层 */
+.dialog-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  text-align: center;
+}
+.import-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 240rpx;
+  background: #edf3fc;
+  border-radius: 14rpx;
+  padding: 20rpx 24rpx;
+  margin-top: 28rpx;
+  font-size: 28rpx;
+}
+.import-tip {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: #93a3bc;
+}
+/* 弹层按钮横排:覆盖 app.wxss 里纵排默认 */
+.actions.row {
+  flex-direction: row;
+  gap: 24rpx;
+}
+.actions.row .btn {
+  flex: 1;
+}

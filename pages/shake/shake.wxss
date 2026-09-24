@@ -1,0 +1,378 @@
+/* shake.wxss — 首页样式:布局 + 摇摆/滚动/粒子动画 */
+
+/* 首页底色与放射纹背景一致,避免 iOS 回弹露出色差 */
+page {
+  background: #f6f6f6;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24rpx 32rpx 48rpx;
+  box-sizing: border-box;
+}
+
+/* 顶栏(置于放射纹背景之上) */
+.topbar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tagline-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+.tagline {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #7a8aa8;
+}
+/* 分组胶囊:主蓝底白字,点击弹出切换列表 */
+.list-pill {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 10rpx;
+  background: #1e63e9;
+  color: #ffffff;
+  font-size: 26rpx;
+  padding: 12rpx 26rpx;
+  border-radius: 999rpx;
+  box-shadow: 0 6rpx 16rpx rgba(30, 99, 233, 0.3);
+}
+.list-pill-hover {
+  opacity: 0.85;
+}
+.list-pill-label {
+  opacity: 0.8;
+}
+.list-pill-name {
+  font-weight: 700;
+}
+.list-pill-arrow {
+  font-size: 20rpx;
+  opacity: 0.8;
+}
+
+/* 分组切换弹层 */
+.picker-title {
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+.group-list {
+  max-height: 46vh;
+  margin-top: 24rpx;
+}
+.group-option {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 26rpx 20rpx;
+  border-radius: 16rpx;
+  background: #f4f7fd;
+  margin-bottom: 16rpx;
+}
+.group-option.on {
+  background: #e7eefa;
+}
+.group-option-name {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #22314f;
+}
+.group-option.on .group-option-name {
+  color: #1e63e9;
+}
+.group-option-count {
+  font-size: 24rpx;
+  color: #93a3bc;
+}
+.group-option-check {
+  color: #1e63e9;
+  font-weight: 700;
+}
+.settings-btn {
+  font-size: 44rpx;
+  padding: 8rpx 12rpx;
+  border-radius: 12rpx;
+}
+.settings-btn-hover {
+  background: #e7eefa;
+}
+
+/* 中部展示区(置于放射纹背景之上) */
+.stage {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 48rpx;
+}
+
+/* 老虎机:机器本体由整页放射纹背景图承载,此处仅作为六窗/面板/拉杆的定位锚
+   裁剪框:原图(1920x1080) x 420..1548 / y 108..1020 → 显示 686x555,比例 0.6082rpx/原图px */
+.machine {
+  position: relative;
+  width: 686rpx;
+  height: 555rpx;
+  max-width: 100%;
+}
+/* 整页放射纹背景:fixed 铺底,尺寸与位置由 alignRays 实测机器盒后换算(见 shake.js) */
+.page-rays {
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+}
+/* 对位测量完成前隐藏,避免闪现错位背景 */
+.page-rays-hide {
+  opacity: 0;
+}
+/* 六滚筒窗符号条:窗格中心 x734..1176.5,白格带 y400..514(原图坐标) */
+.reel-row {
+  position: absolute;
+  left: 166rpx;
+  top: 180rpx;
+  width: 323rpx;
+  height: 69rpx;
+  display: flex;
+}
+.reel-cell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* 滚动中符号逐格闪烁,每格错开 70ms(内联 animation-delay) */
+.machine.rolling .reel-cell {
+  animation-name: flicker;
+  animation-duration: 0.4s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.sym {
+  font-size: 32rpx;
+  font-weight: 800;
+  line-height: 1;
+}
+.sy-star {
+  color: #f0b429;
+}
+.sy-q {
+  color: #22314f;
+}
+.sy-7 {
+  color: #1e63e9;
+}
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* 出奖面板:原图白区 x711..1182 / y670..869,滚动与定格显示选项名 */
+.panel {
+  position: absolute;
+  left: 177rpx;
+  top: 342rpx;
+  width: 286rpx;
+  height: 121rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.display-text {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #1e63e9;
+  padding: 0 8rpx;
+  text-align: center;
+  line-height: 1.2;
+  /* 长选项名折行,最多两行省略 */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  z-index: 2;
+}
+/* 滚动中:文字逐格滚过滚筒,时长随减速步进变长(内联 animation-duration) */
+.machine.rolling .display-text {
+  animation-name: reel-step;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes reel-step {
+  0% { transform: translateY(0); opacity: 1; filter: blur(0); }
+  45% { transform: translateY(-60%); opacity: 0; filter: blur(3px); }
+  55% { transform: translateY(60%); opacity: 0; filter: blur(3px); }
+  100% { transform: translateY(0); opacity: 1; filter: blur(0); }
+}
+/* 定格瞬间:结果名弹跳一下 */
+.display-text.settle {
+  animation-name: settle-pop;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation-iteration-count: 1;
+}
+@keyframes settle-pop {
+  0% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+/* 拉杆:热区内一层透视容器,滚动时杆绕底部支点沿 X 轴向玩家方向倾出,定格弹回 */
+.lever-hit {
+  position: absolute;
+  left: 548rpx;
+  top: 110rpx;
+  width: 100rpx;
+  height: 212rpx;
+}
+.lever {
+  position: absolute;
+  left: 10rpx;
+  bottom: 21rpx;
+  width: 80rpx;
+  height: 183rpx;
+}
+/* 摆动层:rotateX 的正视图投影就是 scaleY——前倾 65° 即 scaleY(0.42),
+   杆的压缩量与圆球位移量同为缓动进度的线性函数,两层动画逐帧严格同步 */
+.lever-swing {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 100%;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.lever-hand {
+  position: absolute;
+  left: 10rpx;
+  top: 10rpx;
+  width: 60rpx;
+}
+/* 圆球独立于摆动层(不被压扁):translateY 与杆的压缩量线性同步(83.7 = 143.3×0.58+0.6),
+   任意帧(含回弹过冲)都精确盖住 hand.png 上的球,并放大 1.3 倍 */
+.lever-ball {
+  position: absolute;
+  left: 10rpx;
+  top: 10rpx;
+  width: 60rpx;
+  z-index: 2;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+/* 滚动中:杆绕底部支点前倾 65°(scaleY 0.42),圆球下移 83.7rpx 放大 1.3 倍跟随杆顶 */
+.machine.rolling .lever-swing {
+  transform: scaleY(0.42);
+}
+.machine.rolling .lever-ball {
+  transform: translateY(83.7rpx) scale(1.3);
+}
+
+/* 庆祝粒子:12 个彩色圆点从出奖面板中心向四周爆开 */
+.particles {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.particle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  margin: -7rpx 0 0 -7rpx;
+  animation: burst 0.9s ease-out forwards;
+}
+/* 每个粒子一个方向与颜色(--dx/--dy 为相对中心的位移) */
+.p0 { --dx: 0rpx;    --dy: -150rpx; background: #45a6ff; }
+.p1 { --dx: 95rpx;   --dy: -155rpx; background: #ffc53d; }
+.p2 { --dx: 165rpx;  --dy: -60rpx;  background: #4fc08d; }
+.p3 { --dx: 180rpx;  --dy: 40rpx;   background: #5b8def; }
+.p4 { --dx: 110rpx;  --dy: 140rpx;  background: #e6558f; }
+.p5 { --dx: 10rpx;   --dy: 140rpx;  background: #45a6ff; }
+.p6 { --dx: -90rpx;  --dy: 150rpx;  background: #ffc53d; }
+.p7 { --dx: -170rpx; --dy: 55rpx;   background: #4fc08d; }
+.p8 { --dx: -185rpx; --dy: -45rpx;  background: #5b8def; }
+.p9 { --dx: -115rpx; --dy: -145rpx; background: #e6558f; }
+.p10 { --dx: -40rpx; --dy: -175rpx; background: #4fc08d; }
+.p11 { --dx: 55rpx;  --dy: -170rpx; background: #5b8def; }
+
+@keyframes burst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+.shake-tip {
+  font-size: 28rpx;
+  color: #93a3bc;
+}
+
+/* 拉杆按压反馈 */
+.lever-hover {
+  opacity: 0.75;
+}
+
+/* 结果弹窗 */
+.dialog-close {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: #f4f7fd;
+  color: #93a3bc;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dialog-close-hover {
+  background: #e7eefa;
+  color: #7a8aa8;
+}
+.result-label {
+  text-align: center;
+  font-size: 26rpx;
+  color: #93a3bc;
+}
+.result-name {
+  text-align: center;
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #1e63e9;
+  margin-top: 24rpx;
+  word-break: break-all;
+}
+.exhausted-tip {
+  margin-top: 24rpx;
+  font-size: 28rpx;
+  color: #7a8aa8;
+  line-height: 1.6;
+}
+.btn-hover {
+  opacity: 0.85;
+}
+.hint {
+  margin-top: 28rpx;
+  font-size: 24rpx;
+  color: #93a3bc;
+  text-align: center;
+  line-height: 1.5;
+}
