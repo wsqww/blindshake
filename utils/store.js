@@ -6,15 +6,23 @@
 const STORAGE_KEY = 'blindshake_data_v1';
 /** 确定记录最大保留天数:需大于设置项允许的最大防重复天数,过期记录无判断价值 */
 const LOG_RETENTION_DAYS = 90;
-/** 权重下限:保证被反复「减少推荐」的选项仍有可能被摇中(概率降低但不为 0 语义) */
-const WEIGHT_MIN = 0.1;
+/** 权重下限:与单次降幅对齐,「减少推荐」最多点 3 次(1.0 → 0.25),概率降低但保留被摇中的机会 */
+const WEIGHT_MIN = 0.25;
 /** 权重初始值 */
 const WEIGHT_INIT = 1.0;
+/** 「减少推荐」单次降低的权重:按 25% 逐档下降(1.0 → 0.75 → 0.5 → 0.25) */
+const WEIGHT_STEP = 0.25;
 /** 设置项允许的防重复参数上限:天数与记录清理周期对应 */
 const DEDUP_DAYS_MAX = 30;
 const DEDUP_COUNT_MAX = 15;
 /** 每个分组允许的最大选项数 */
 const MAX_ITEMS_PER_LIST = 20;
+/** 分组数量上限:分组对应决策场景,个人使用 6 个足够,同时避免标签条与切换弹层失控 */
+const MAX_LISTS = 6;
+/** 分组名称最大长度(字符):防止横向标签胶囊被超长名撑破 */
+const MAX_LIST_NAME_LEN = 10;
+/** 选项名称最大长度(字符):防止名单行与出奖面板被超长名撑破 */
+const MAX_ITEM_NAME_LEN = 15;
 
 /**
  * 生成短随机 id
@@ -134,13 +142,14 @@ function getList(data) {
 }
 
 /**
- * 在当前分组中追加一个选项(重名拦截,单组上限 MAX_ITEMS_PER_LIST)
+ * 在当前分组中追加一个选项(重名/超长拦截,单组上限 MAX_ITEMS_PER_LIST)
  * @param {string} name 选项名称,前后空白会被裁掉
- * @returns {{ok: boolean, reason?: string}} ok=false 时 reason 为 'empty'|'dup'|'full'
+ * @returns {{ok: boolean, reason?: string}} ok=false 时 reason 为 'empty'|'dup'|'full'|'tooLong'
  */
 function addItem(name) {
   const trimmed = (name || '').trim();
   if (!trimmed) return { ok: false, reason: 'empty' };
+  if (trimmed.length > MAX_ITEM_NAME_LEN) return { ok: false, reason: 'tooLong' };
   const data = read();
   const list = getList(data);
   if (list.items.some((it) => it.name === trimmed)) {
@@ -155,19 +164,25 @@ function addItem(name) {
 }
 
 /**
- * 批量导入:逐行添加并跳过重名;超出单组上限的部分计入跳过
+ * 批量导入:逐行添加并跳过重名;超长行截断到 MAX_ITEM_NAME_LEN 并计数(粘贴场景截断优于丢行),
+ * 截断后落入的重名行照常跳过;超出单组上限的部分计入跳过
  * @param {string[]} names 选项名称数组(每项内部会 trim)
- * @returns {{added: number, skipped: number, full: boolean}} 新增/跳过数量,full 标记是否因满员截断
+ * @returns {{added: number, skipped: number, full: boolean, truncated: number}} 新增/跳过数量、full 满员截断标记、truncated 超长截断行数
  */
 function batchAdd(names) {
   let added = 0;
   let skipped = 0;
   let full = false;
+  let truncated = 0;
   const data = read();
   const list = getList(data);
   names.forEach((raw) => {
-    const name = (raw || '').trim();
+    let name = (raw || '').trim();
     if (!name) return;
+    if (name.length > MAX_ITEM_NAME_LEN) {
+      name = name.slice(0, MAX_ITEM_NAME_LEN);
+      truncated += 1;
+    }
     if (list.items.length >= MAX_ITEMS_PER_LIST) {
       full = true;
       skipped += 1;
@@ -181,7 +196,7 @@ function batchAdd(names) {
     added += 1;
   });
   write(data);
-  return { added, skipped, full };
+  return { added, skipped, full, truncated };
 }
 
 /**
@@ -199,7 +214,8 @@ function removeItem(itemId) {
 }
 
 /**
- * 降低某选项权重:当前值减半,不低于 WEIGHT_MIN
+ * 降低某选项权重:每次减 WEIGHT_STEP(0.25),不低于 WEIGHT_MIN
+ * 兼容旧数据:历史版本可能存过 0.1 这类低于下限的值,已处于最低档时保持不变(点「减少推荐」不会回升)
  * @param {string} itemId 选项 id
  * @returns {number|null} 新权重;选项不存在时返回 null
  */
@@ -208,7 +224,8 @@ function reduceWeight(itemId) {
   const list = getList(data);
   const item = list.items.find((it) => it.id === itemId);
   if (!item) return null;
-  item.weight = Math.max(WEIGHT_MIN, item.weight / 2);
+  if (item.weight <= WEIGHT_MIN) return item.weight;
+  item.weight = Math.max(WEIGHT_MIN, item.weight - WEIGHT_STEP);
   write(data);
   return item.weight;
 }
@@ -329,20 +346,24 @@ function updateSettings(patch) {
   const prevMode = data.settings.dedupMode;
   data.settings = Object.assign({}, data.settings, patch);
   if (patch.dedupMode === 'count' && prevMode !== 'count') {
-    resetCooldowns();
+    // 切回次数模式:在当前快照上清零历史冷却;
+    // 不能调 resetCooldowns——它自读自写存储,随后的 write(data) 会把旧冷却覆盖回来
+    getList(data).items.forEach((it) => { it.cooldown = 0; });
   }
   write(data);
 }
 
 /**
- * 新建分组(重名拦截),建成后自动切换为当前分组
+ * 新建分组(重名/超长/数量拦截),建成后自动切换为当前分组
  * @param {string} name 分组名,前后空白会被裁掉
- * @returns {{ok: boolean, reason?: string, id?: string}} ok=false 时 reason 为 'empty'|'dup'
+ * @returns {{ok: boolean, reason?: string, id?: string}} ok=false 时 reason 为 'empty'|'dup'|'tooLong'|'full'
  */
 function addList(name) {
   const trimmed = (name || '').trim();
   if (!trimmed) return { ok: false, reason: 'empty' };
+  if (trimmed.length > MAX_LIST_NAME_LEN) return { ok: false, reason: 'tooLong' };
   const data = read();
+  if (data.lists.length >= MAX_LISTS) return { ok: false, reason: 'full' };
   if (data.lists.some((l) => l.name === trimmed)) {
     return { ok: false, reason: 'dup' };
   }
@@ -354,14 +375,15 @@ function addList(name) {
 }
 
 /**
- * 重命名分组(与其他分组重名拦截)
+ * 重命名分组(与其他分组重名/超长拦截)
  * @param {string} listId 分组 id
  * @param {string} name 新名称
- * @returns {{ok: boolean, reason?: string}} reason: 'empty'|'dup'|'missing'
+ * @returns {{ok: boolean, reason?: string}} reason: 'empty'|'dup'|'tooLong'|'missing'
  */
 function renameList(listId, name) {
   const trimmed = (name || '').trim();
   if (!trimmed) return { ok: false, reason: 'empty' };
+  if (trimmed.length > MAX_LIST_NAME_LEN) return { ok: false, reason: 'tooLong' };
   const data = read();
   const list = data.lists.find((l) => l.id === listId);
   if (!list) return { ok: false, reason: 'missing' };
@@ -396,14 +418,15 @@ function removeList(listId) {
 }
 
 /**
- * 重命名选项(当前分组内重名拦截)
+ * 重命名选项(当前分组内重名/超长拦截)
  * @param {string} itemId 选项 id
  * @param {string} name 新名称
- * @returns {{ok: boolean, reason?: string}} reason: 'empty'|'dup'|'missing'
+ * @returns {{ok: boolean, reason?: string}} reason: 'empty'|'dup'|'tooLong'|'missing'
  */
 function renameItem(itemId, name) {
   const trimmed = (name || '').trim();
   if (!trimmed) return { ok: false, reason: 'empty' };
+  if (trimmed.length > MAX_ITEM_NAME_LEN) return { ok: false, reason: 'tooLong' };
   const data = read();
   const list = getList(data);
   const item = list.items.find((it) => it.id === itemId);
@@ -434,6 +457,9 @@ module.exports = {
   DEDUP_DAYS_MAX,
   DEDUP_COUNT_MAX,
   MAX_ITEMS_PER_LIST,
+  MAX_LISTS,
+  MAX_LIST_NAME_LEN,
+  MAX_ITEM_NAME_LEN,
   genId,
   defaultData,
   read,

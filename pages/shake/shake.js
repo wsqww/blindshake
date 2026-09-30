@@ -37,6 +37,8 @@ Page({
     activeListId: '',
     /** 分组切换弹层开关(打开期间不响应摇动) */
     listPickerOpen: false,
+    /** 候选为空的引导弹框开关 */
+    emptyDlg: false,
     /** 弹层渲染的全部分组(含选项数) */
     lists: [],
     /** 是否处于老虎机滚动中(滚动期间忽略再次触发) */
@@ -74,6 +76,10 @@ Page({
     raysStyle: '',
     /** 背景是否已完成对位(完成前隐藏,避免闪现错位背景) */
     raysReady: false,
+    /** 自定义导航(px):标题框直接取胶囊实测矩形,navBottom 为胶囊底缘(下方内容从此起排) */
+    menuTop: 0,
+    menuHeight: 32,
+    navBottom: 76,
   },
 
   /** 上次摇动触发时间戳,用于冷却判断 */
@@ -87,9 +93,22 @@ Page({
   /** 加速计监听是否已开启(onShow/onHide 反复进出时防重复注册) */
   motionActive: false,
 
-  // 职责:页面加载时创建绑定 this 的加速计回调(wx 全局回调不保证 this 指向页面实例)
+  // 职责:页面加载时创建绑定 this 的加速计回调(wx 全局回调不保证 this 指向页面实例),并测量自定义导航占位
   onLoad() {
     this.motionHandler = (res) => this.handleMotion(res);
+    this.loadBarMetrics();
+  },
+
+  // 职责:实测微信胶囊矩形,标题框与其完全重合保证垂直同轴;navBottom 供下方内容起排;异常时按状态栏兜底
+  loadBarMetrics() {
+    const info = wx.getWindowInfo();
+    const menu = wx.getMenuButtonBoundingClientRect();
+    if (!menu || !menu.height || !menu.top) {
+      const top = info.statusBarHeight + 4;
+      this.setData({ menuTop: top, menuHeight: 32, navBottom: top + 32 + 4 });
+      return;
+    }
+    this.setData({ menuTop: menu.top, menuHeight: menu.height, navBottom: menu.top + menu.height });
   },
 
   // 职责:首次布局完成后对位整页放射纹背景
@@ -97,8 +116,9 @@ Page({
     this.alignRays();
   },
 
-  // 职责:窗口尺寸变化(分屏/旋转)时重新对位放射纹背景
-  onPageResize() {
+  // 职责:窗口尺寸变化(iPad 分屏/旋转,需 app.json resizable)时重测导航占位并重新对位放射纹背景
+  onResize() {
+    this.loadBarMetrics();
     this.alignRays();
   },
 
@@ -241,15 +261,8 @@ Page({
     const available = getAvailableItems(items, data.confirmLog, data.settings, now);
 
     if (items.length === 0) {
-      wx.showModal({
-        title: '还没有候选',
-        content: '先去管理页添加几个选项吧',
-        confirmText: '去添加',
-        cancelText: '取消',
-        success: (r) => {
-          if (r.confirm) this.goManage();
-        },
-      });
+      // 弹「还没有候选」通用弹框,确认后由 wxml 的 bindconfirm 跳转管理页
+      this.setData({ emptyDlg: true });
       return;
     }
     if (available.length === 0) {
@@ -356,7 +369,7 @@ Page({
     this.spin();
   },
 
-  // 职责:「减少推荐」——当前结果权重减半后再摇一次;被删选项时仅提示
+  // 职责:「减少推荐」——当前结果权重降 25%(最低 0.25)后再摇一次;被删选项时仅提示
   onReduceAndReroll() {
     const result = this.data.result;
     if (!result) return;
@@ -377,10 +390,23 @@ Page({
     this.spin();
   },
 
-  // 职责:跳转管理页(右上角设置 icon 与弹窗引导共用)
+  // 职责:关闭「还没有候选」引导弹框(弹框取消按钮)
+  onCloseEmptyDlg() {
+    this.setData({ emptyDlg: false });
+  },
+
+  // 职责:跳转管理页;取消未弹出结果与滚动链并复位动效状态,避免返回后弹窗凭空出现
   goManage() {
     this.clearPendingResult();
-    this.setData({ showResult: false, particlesOn: false, listPickerOpen: false });
+    if (this.rollTimer) {
+      clearTimeout(this.rollTimer);
+      this.rollTimer = null;
+    }
+    if (this.settleTimer) {
+      clearTimeout(this.settleTimer);
+      this.settleTimer = null;
+    }
+    this.setData({ showResult: false, rolling: false, settling: false, particlesOn: false, listPickerOpen: false, emptyDlg: false });
     wx.navigateTo({ url: '/pages/manage/manage' });
   },
 

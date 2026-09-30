@@ -9,22 +9,36 @@ page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 24rpx 32rpx 48rpx;
+  /* 顶部 padding 必须为 0:顶栏(自绘导航)要从视口顶起排,标题与胶囊矩形才能对齐 */
+  padding: 0 32rpx 48rpx;
   box-sizing: border-box;
 }
 
-/* 顶栏(置于放射纹背景之上) */
+/* 顶栏(置于放射纹背景之上):第一行标语+齿轮,第二行胶囊居中 */
 .topbar {
   position: relative;
   z-index: 1;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.tagline-wrap {
-  display: flex;
   flex-direction: column;
-  gap: 6rpx;
+  align-items: center;
+  gap: 16rpx;
+}
+/* 自绘导航标题:位置/行高由行内 style 按胶囊实测矩形给定,框与胶囊重合、文字居中即同轴 */
+.nav-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #22314f;
+}
+/* 第一行:标语整行居中,齿轮绝对定位靠右(不占居中计算) */
+.topbar-row {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 .tagline {
   font-size: 30rpx;
@@ -35,20 +49,19 @@ page {
 .list-pill {
   display: inline-flex;
   align-items: center;
-  align-self: flex-start;
   gap: 10rpx;
   background: #1e63e9;
   color: #ffffff;
   font-size: 26rpx;
-  padding: 12rpx 26rpx;
+  padding: 12rpx 30rpx;
   border-radius: 999rpx;
   box-shadow: 0 6rpx 16rpx rgba(30, 99, 233, 0.3);
 }
 .list-pill-hover {
   opacity: 0.85;
 }
-.list-pill-label {
-  opacity: 0.8;
+.list-pill-icon {
+  font-size: 26rpx;
 }
 .list-pill-name {
   font-weight: 700;
@@ -97,7 +110,12 @@ page {
   color: #1e63e9;
   font-weight: 700;
 }
+/* 设置齿轮:贴第一行右侧,不参与标语居中计算 */
 .settings-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 44rpx;
   padding: 8rpx 12rpx;
   border-radius: 12rpx;

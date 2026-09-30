@@ -1,6 +1,6 @@
 <!--manage.wxml — 管理页:候选名单 + 权重 + 防重复设置 + 批量导入弹层-->
 <view class="page">
-  <!-- 分组区:横向切换 + 新建 + 当前分组重命名/删除 -->
+  <!-- 分组区:横向切换 + 新建;当前分组的重命名/删除放卡片底部 footer -->
   <view class="section">
     <view class="section-title">分组</view>
     <scroll-view class="group-scroll" scroll-x enhanced show-scrollbar="{{false}}">
@@ -19,7 +19,8 @@
         <view class="group-tab add" bindtap="onAddList">+</view>
       </view>
     </scroll-view>
-    <view class="list-ops">
+    <!-- 卡片 footer:当组操作靠右,顶部细线与标签区分隔 -->
+    <view class="group-footer">
       <text class="op" bindtap="onRenameList">重命名</text>
       <text class="op del {{lists.length <= 1 ? 'disabled' : ''}}" bindtap="onRemoveList">删除分组</text>
     </view>
@@ -28,41 +29,55 @@
   <!-- 选项区 -->
   <view class="section">
     <view class="section-title-row">
-      <view class="section-title">选项列表({{items.length}})</view>
-      <view class="section-tip">点击名称可修改 · 每组至多 20 个</view>
+      <view class="section-title">选项列表（{{items.length}}）</view>
+      <view class="section-tip">点击名称可修改 · 每组至多 {{maxItemsPerList}} 个</view>
     </view>
     <view class="add-row">
-      <input
-        class="add-input"
-        placeholder="输入选项名称,回车或点添加"
-        value="{{inputName}}"
-        bindinput="onInputName"
-        bindconfirm="onAdd"
-        confirm-type="done"
-        maxlength="30"
-      />
-      <button class="add-btn" hover-class="btn-hover" bindtap="onAdd">添加</button>
+      <view class="add-box">
+        <input
+          class="add-input"
+          placeholder="输入名称，至多 {{maxItemNameLen}} 字"
+          value="{{inputName}}"
+          bindinput="onInputName"
+          bindconfirm="onAdd"
+          confirm-type="done"
+          maxlength="-1"
+        />
+        <!-- 字数计数:有内容时显示,超上限变红;超限时添加按钮禁用 -->
+        <text class="input-count {{inputName.length > maxItemNameLen ? 'limit' : ''}}" wx:if="{{inputName.length > 0}}">{{inputName.length}}/{{maxItemNameLen}}</text>
+      </view>
+      <!-- 超过名称上限时按钮禁用置灰,点击不生效 -->
+      <view class="add-btn {{inputName.length > maxItemNameLen ? 'disabled' : ''}}" hover-class="{{inputName.length > maxItemNameLen ? '' : 'btn-hover'}}" bindtap="onAdd">添加</view>
     </view>
-    <view class="import-entry" bindtap="openImport">📋 从别处复制了一串选项?批量粘贴导入</view>
+    <view class="import-entry" hover-class="btn-hover" bindtap="openImport">📋 从别处复制了一串选项？批量粘贴导入</view>
 
     <view class="item-row" wx:for="{{items}}" wx:key="id">
-      <view class="item-main">
+      <!-- 上行:名称居左(点击改名),恢复/删除靠右 -->
+      <view class="item-head">
         <view class="item-name" bindtap="onRenameItem" data-id="{{item.id}}">{{item.name}}</view>
-        <!-- 权重可视化:条长即权重,1.0 满条,最低 0.1 -->
+        <view class="item-ops">
+          <text class="op" wx:if="{{item.isReduced}}" bindtap="onResetWeight" data-id="{{item.id}}">恢复</text>
+          <text class="op del" bindtap="onRemove" data-id="{{item.id}}">删除</text>
+        </view>
+      </view>
+      <!-- 下行:权重条 + 右侧当前权重数值,条长即随机权重,满条 1.0,最低 0.25 -->
+      <view class="weight-row">
         <view class="weight-bar">
           <view class="weight-fill {{item.isReduced ? 'reduced' : ''}}" style="width: {{item.weightPct}}%"></view>
         </view>
-      </view>
-      <view class="item-ops">
-        <text class="op" wx:if="{{item.isReduced}}" bindtap="onResetWeight" data-id="{{item.id}}">恢复</text>
-        <text class="op del" bindtap="onRemove" data-id="{{item.id}}">删除</text>
+        <text class="weight-value {{item.isReduced ? 'reduced' : ''}}">{{item.weightText}}</text>
       </view>
     </view>
-    <view class="empty" wx:if="{{!items.length}}">名单空空如也,先加几个选项吧</view>
+    <view class="empty" wx:if="{{!items.length}}">名单空空如也，先加几个选项吧</view>
 
-    <view class="weight-footer" wx:if="{{hasReduced}}">
-      <text class="weight-note">被「减少推荐」的选项概率减半,最低 0.1</text>
-      <text class="op" bindtap="onResetAll">全部恢复 1.0</text>
+    <!-- 权重图例:常显,避免进度条无解释;「全部恢复」仅在有降权选项时出现 -->
+    <view class="weight-footer" wx:if="{{items.length}}">
+      <view class="weight-note">
+        <view>进度条表示该选项在随机算法中的权重</view>
+        <view>「减少推荐」每次降 25%</view>
+        <view wx:if="{{hasReduced}}">点「恢复」还原</view>
+      </view>
+      <text class="op" wx:if="{{hasReduced}}" bindtap="onResetAll">全部恢复 1.0</text>
     </view>
   </view>
 
@@ -84,7 +99,7 @@
     </view>
 
     <view class="log-row">
-      <text class="weight-note">冷却中:{{blockedCount}} 个</text>
+      <text class="weight-note">冷却中：{{blockedCount}} 个</text>
       <text class="op del" bindtap="onClearLog">清空记录</text>
     </view>
   </view>
@@ -96,16 +111,30 @@
     <view class="dialog-title">批量导入</view>
     <textarea
       class="import-textarea"
-      placeholder="一行一个选项,支持直接粘贴多行"
+      placeholder="一行一个选项，每行至多 {{maxItemNameLen}} 字"
       value="{{importText}}"
       bindinput="onImportText"
       maxlength="1000"
       auto-height
     />
-    <view class="import-tip">重复的选项会自动跳过</view>
+    <view class="import-tip">重复项自动跳过 · 超长名称截为 {{maxItemNameLen}} 字</view>
     <view class="actions row">
       <button class="btn" hover-class="btn-hover" bindtap="closeImport">取消</button>
       <button class="btn primary" hover-class="btn-hover" bindtap="doImport">导入</button>
     </view>
   </view>
 </view>
+
+<!-- 通用确认/输入弹框:统一替代原生 wx.showModal,全项目弹框风格一致 -->
+<app-dialog
+  show="{{dlg.show}}"
+  title="{{dlg.title}}"
+  content="{{dlg.content}}"
+  editable="{{dlg.editable}}"
+  placeholder="{{dlg.placeholder}}"
+  max-length="{{dlg.maxLength}}"
+  confirm-text="{{dlg.confirmText}}"
+  danger="{{dlg.danger}}"
+  bindconfirm="onDlgConfirm"
+  bindcancel="onDlgCancel"
+/>

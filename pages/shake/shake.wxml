@@ -2,17 +2,18 @@
 <view class="page">
   <!-- 整页放射纹背景:一张大图同时承载机器本体与向外延拓的射线(零接缝),由 JS 实测对位 -->
   <image class="page-rays {{raysReady ? '' : 'page-rays-hide'}}" src="../../assets/rays-bg.png" style="{{raysStyle}}" />
-  <!-- 顶栏:标语 + 分组胶囊(点击切换) + 设置入口 -->
-  <view class="topbar">
-    <view class="tagline-wrap">
-      <view class="tagline">选择困难?摇一下就知道</view>
-      <view class="list-pill" hover-class="list-pill-hover" bindtap="onOpenListPicker">
-        <text class="list-pill-label">当前分组</text>
-        <text class="list-pill-name">{{activeListName}}</text>
-        <text class="list-pill-arrow">▾</text>
-      </view>
+  <!-- 顶栏:标题框直接对齐胶囊矩形(零误差),内容从胶囊下方开始;条纹透底铺满 -->
+  <view class="topbar" style="padding-top: {{navBottom + 16}}px;">
+    <view class="nav-title" style="top: {{menuTop}}px; height: {{menuHeight}}px; line-height: {{menuHeight}}px;">摇摇瞎选</view>
+    <view class="topbar-row">
+      <view class="tagline">选择困难？摇一下就知道</view>
+      <view class="settings-btn" hover-class="settings-btn-hover" bindtap="goManage" aria-label="管理页">⚙️</view>
     </view>
-    <view class="settings-btn" hover-class="settings-btn-hover" bindtap="goManage" aria-label="管理页">⚙️</view>
+    <view class="list-pill" hover-class="list-pill-hover" bindtap="onOpenListPicker">
+      <text class="list-pill-icon">📂</text>
+      <text class="list-pill-name">{{activeListName}}</text>
+      <text class="list-pill-arrow">▾</text>
+    </view>
   </view>
 
   <!-- 中部展示区:六窗符号 + 出奖面板 + 拉杆(机器本体由整页背景承载) -->
@@ -49,7 +50,7 @@
         </view>
       </view>
     </view>
-    <view class="shake-tip">{{rolling ? '盲盒开启中…' : '摇一摇手机,或拉一下拉杆'}}</view>
+    <view class="shake-tip">{{rolling ? '盲盒开启中…' : '摇一摇手机，或拉一下拉杆'}}</view>
   </view>
 
   <!-- 结果弹窗 -->
@@ -65,13 +66,13 @@
           <button class="btn" hover-class="btn-hover" bindtap="onReroll">重新随机</button>
           <button class="btn subtle" bindtap="onReduceAndReroll">减少推荐</button>
         </view>
-        <view class="hint" wx:if="{{hintVisible}}">都不想吃?试试「减少推荐」,它出现的机会会变小</view>
+        <view class="hint" wx:if="{{hintVisible}}">都不满意？试试「减少推荐」，它出现的机会会变小</view>
       </block>
 
       <!-- 防重复耗尽:解锁入口 -->
       <block wx:elif="{{resultMode === 'exhausted'}}">
         <view class="result-label">候选都在冷却中</view>
-        <view class="exhausted-tip">最近确定过的选项还没恢复,每摇一次冷却会推进一步。也可以解锁全部,立即恢复所有候选。</view>
+        <view class="exhausted-tip">最近确定过的选项还没恢复，每摇一次冷却会推进一步。也可以解锁全部，立即恢复所有候选。</view>
         <view class="actions">
           <button class="btn primary" hover-class="btn-hover" bindtap="onUnlock">解锁全部</button>
           <button class="btn" hover-class="btn-hover" bindtap="goManage">去管理</button>
@@ -105,4 +106,14 @@
       </view>
     </view>
   </view>
+
+  <!-- 通用确认弹框:候选为空时引导去管理页 -->
+  <app-dialog
+    show="{{emptyDlg}}"
+    title="还没有候选"
+    content="先去管理页添加几个选项吧"
+    confirm-text="去添加"
+    bindconfirm="goManage"
+    bindcancel="onCloseEmptyDlg"
+  />
 </view>

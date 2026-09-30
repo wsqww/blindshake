@@ -1,0 +1,28 @@
+<!--dialog.wxml — 通用弹框:遮罩 + 卡片 + 可选说明/输入 + 插槽 + 横排双按钮
+  内容区两种用法:简单文字/输入用 content/editable 属性(组件样式托管);
+  复杂内容用默认插槽(内容由页面渲染、吃页面样式),显示在 content 之后、按钮之前-->
+<view class="mask" wx:if="{{show}}" catchtouchmove="noop">
+  <view class="dialog">
+    <view class="dialog-title">{{title}}</view>
+    <view class="dialog-content" wx:if="{{content}}">{{content}}</view>
+    <view class="dialog-input-wrap" wx:if="{{editable}}">
+      <input
+        class="dialog-input"
+        placeholder="{{placeholder}}"
+        value="{{inputValue}}"
+        focus="{{show}}"
+        confirm-type="done"
+        maxlength="-1"
+        bindinput="onInput"
+        bindconfirm="onConfirm"
+      />
+      <!-- 字数计数:有内容时显示,超上限变红;超限时确认按钮禁用 -->
+      <text class="input-count {{inputValue.length > maxLength ? 'limit' : ''}}" wx:if="{{inputValue.length > 0}}">{{inputValue.length}}/{{maxLength}}</text>
+    </view>
+    <slot></slot>
+    <view class="dlg-actions">
+      <button class="dlg-btn" hover-class="dlg-btn-hover" bindtap="onCancel">{{cancelText}}</button>
+      <button class="dlg-btn {{danger ? 'danger' : 'primary'}} {{confirmDisabled ? 'disabled' : ''}}" hover-class="{{confirmDisabled ? '' : 'dlg-btn-hover'}}" bindtap="onConfirm">{{confirmText}}</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,114 @@
+/* dialog.wxss — 通用弹框样式:与 app.wxss 的 .mask/.dialog 同源,组件隔离故自足一份 */
+
+.mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 30, 65, 0.55);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog {
+  width: 620rpx;
+  max-width: 90vw;
+  background: #ffffff;
+  border-radius: 28rpx;
+  padding: 48rpx 40rpx;
+  box-sizing: border-box;
+  box-shadow: 0 16rpx 48rpx rgba(30, 60, 130, 0.25);
+}
+
+.dialog-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.dialog-content {
+  margin-top: 24rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: #5a6b8c;
+  text-align: center;
+}
+
+/* 输入区:定位容器承载字数计数;输入框与页面 add-input 同底色 */
+.dialog-input-wrap {
+  position: relative;
+  margin-top: 28rpx;
+}
+.dialog-input {
+  width: 100%;
+  /* 同 add-input:UA 固定高度 + border-box 上下 padding 会压扁内容,显式给高、垂直居中交组件 */
+  height: 76rpx;
+  box-sizing: border-box;
+  background: #edf3fc;
+  border-radius: 14rpx;
+  padding: 0 96rpx 0 24rpx;
+  font-size: 28rpx;
+}
+/* 字数计数:输入框内右侧垂直居中,达上限变红 */
+.input-count {
+  position: absolute;
+  right: 16rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20rpx;
+  color: #93a3bc;
+}
+.input-count.limit {
+  color: #e6554f;
+}
+
+/* 确认/取消横排;复位微信 button 默认样式(组件隔离需自做一遍) */
+.dlg-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 24rpx;
+  margin-top: 40rpx;
+}
+/* 复位微信 button 默认样式(组件隔离需自做一遍);
+   必须用裸标签选择器:类+标签(.dlg-actions button)优先级会压过 .dlg-btn,打掉背景/圆角 */
+button {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  line-height: inherit;
+  border-radius: 0;
+}
+button::after {
+  border: none;
+}
+.dlg-btn {
+  flex: 1;
+  box-sizing: border-box;
+  padding: 22rpx 0;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  text-align: center;
+  background: #e7eefa;
+  color: #22314f;
+}
+.dlg-btn.primary {
+  background: #1e63e9;
+  color: #ffffff;
+  font-weight: 600;
+}
+.dlg-btn.danger {
+  background: #e6554f;
+  color: #ffffff;
+  font-weight: 600;
+}
+/* 超限禁用态:三级类压过 primary/danger 皮肤 */
+.dlg-actions .dlg-btn.disabled {
+  background: #c3cede;
+  color: #ffffff;
+}
+.dlg-btn-hover {
+  opacity: 0.85;
+}

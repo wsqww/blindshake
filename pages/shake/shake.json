@@ -1,4 +1,7 @@
 {
-  "usingComponents": {},
-  "disableScroll": true
+  "usingComponents": {
+    "app-dialog": "../../components/dialog/dialog"
+  },
+  "disableScroll": true,
+  "navigationStyle": "custom"
 }

@@ -19,11 +19,15 @@
   font-weight: 700;
   margin-bottom: 28rpx;
 }
-/* 标题行:标题 + 右侧小字提示 */
+/* 标题行:标题 + 右侧小字提示;标题禁止压缩折行,空间不足时由提示侧让位 */
 .section-title-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  gap: 24rpx;
+}
+.section-title-row .section-title {
+  flex-shrink: 0;
 }
 .section-tip {
   font-size: 22rpx;
@@ -45,21 +49,30 @@
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  gap: 10rpx;
-  padding: 14rpx 26rpx;
+  gap: 12rpx;
+  padding: 14rpx 28rpx;
   border-radius: 999rpx;
   background: #edf3fc;
-  color: #7a8aa8;
+  color: #5a6b8c;
   font-size: 26rpx;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 .group-tab.on {
   background: #1e63e9;
   color: #ffffff;
   font-weight: 600;
+  box-shadow: 0 6rpx 16rpx rgba(30, 99, 233, 0.28);
 }
+/* 选项数徽章:未选中淡蓝底,选中白色半透明底 */
 .group-count {
-  font-size: 22rpx;
-  opacity: 0.75;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  background: rgba(30, 99, 233, 0.1);
+  font-size: 20rpx;
+  line-height: 26rpx;
+}
+.group-tab.on .group-count {
+  background: rgba(255, 255, 255, 0.25);
 }
 .group-tab.add {
   background: transparent;
@@ -68,10 +81,14 @@
   font-weight: 700;
   padding: 12rpx 28rpx;
 }
-.list-ops {
+/* 卡片 footer:当组操作(重命名/删除)靠右,顶部细线与标签区分隔,样式对齐冷却区 footer */
+.group-footer {
   display: flex;
+  justify-content: flex-end;
   gap: 32rpx;
-  margin-top: 20rpx;
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 2rpx solid #e6eef9;
 }
 .op.disabled {
   color: #c3cede;
@@ -83,15 +100,39 @@
   gap: 20rpx;
   align-items: center;
 }
-.add-input {
+/* 添加输入区:包一层定位容器承载字数计数 */
+.add-box {
   flex: 1;
+  position: relative;
+  min-width: 0;
+}
+.add-input {
+  width: 100%;
+  /* 微信 input UA 有固定高度,border-box 下上下 padding 会压扁内容区导致文字错位;
+     高度显式给定、上下 padding 置 0,垂直居中由组件处理 */
+  height: 76rpx;
+  box-sizing: border-box;
   background: #edf3fc;
   border-radius: 14rpx;
-  padding: 18rpx 24rpx;
+  padding: 0 96rpx 0 24rpx;
   font-size: 28rpx;
 }
+/* 字数计数:输入框内右侧垂直居中,达上限变红 */
+.input-count {
+  position: absolute;
+  right: 16rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20rpx;
+  color: #93a3bc;
+}
+.input-count.limit {
+  color: #e6554f;
+}
+/* 添加按钮:view 实现,无 UA 整行宽干扰;flex: none 保证收缩为内容宽,不挤占输入框 */
 .add-btn {
-  padding: 16rpx 36rpx;
+  flex: none;
+  padding: 18rpx 40rpx;
   background: #1e63e9;
   color: #ffffff;
   font-size: 28rpx;
@@ -101,36 +142,52 @@
 .btn-hover {
   opacity: 0.85;
 }
-
-/* 批量导入入口 */
-.import-entry {
-  margin-top: 24rpx;
-  font-size: 26rpx;
-  color: #1e63e9;
+/* 超长时的禁用态:置灰且点击不生效(见 onAdd 拦截) */
+.add-btn.disabled {
+  background: #c3cede;
 }
 
-/* 名单行 */
+/* 批量导入入口:整行淡蓝底条状按钮,上下加大 padding 保证点击热区 */
+.import-entry {
+  margin-top: 24rpx;
+  padding: 22rpx 24rpx;
+  background: #edf3fc;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: #1e63e9;
+  text-align: center;
+}
+
+/* 名单行:上行「名称+操作」、下行权重条的上下布局 */
 .item-row {
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
   padding: 24rpx 0;
   border-bottom: 2rpx solid #e6eef9;
 }
 .item-row:last-of-type {
   border-bottom: none;
 }
-.item-main {
-  flex: 1;
-  min-width: 0;
+/* 名称行:名称占满剩余宽度,操作贴右 */
+.item-head {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
 }
 .item-name {
+  flex: 1;
+  min-width: 0;
   font-size: 30rpx;
-  margin-bottom: 12rpx;
   word-break: break-all;
+}
+/* 权重行:权重条 + 右侧当前权重数值 */
+.weight-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 16rpx;
 }
 /* 权重条:宽度由行内 style 控制,1.0 为满条 */
 .weight-bar {
+  flex: 1;
   height: 12rpx;
   background: #e7eefa;
   border-radius: 999rpx;
@@ -144,6 +201,17 @@
 }
 .weight-fill.reduced {
   background: #8fb3e8;
+}
+/* 权重数值:条右侧右对齐,降权时与淡蓝条同色 */
+.weight-value {
+  flex-shrink: 0;
+  min-width: 56rpx;
+  text-align: right;
+  font-size: 22rpx;
+  color: #93a3bc;
+}
+.weight-value.reduced {
+  color: #8fb3e8;
 }
 
 /* 行内操作 */
@@ -175,8 +243,11 @@
   gap: 20rpx;
   margin-top: 24rpx;
 }
+/* 图例文字:两行说明,行距稍拉开便于阅读 */
 .weight-note {
+  flex: 1;
   font-size: 24rpx;
+  line-height: 1.7;
   color: #93a3bc;
 }
 
