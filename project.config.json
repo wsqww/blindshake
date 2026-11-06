@@ -40,6 +40,7 @@
       "ignore": [
          { "type": "folder", "value": ".history" },
          { "type": "folder", "value": ".zcode" },
+         { "type": "folder", "value": "docs" },
          { "type": "file", "value": ".zcodeignore" },
          { "type": "file", "value": "assets/slot-machine-blank.png" },
          { "type": "file", "value": "assets/slot-machine-original.jpg" },
